@@ -1,134 +1,133 @@
 # /usr/bin/env python3
 # codeing=utf-8
+# author: Palm Civet
+# repo: https://www.github.com/Palmcivet.git
 
 import os
 import random  # TODO
 
 
-# 打印信息：错误、警告、正常
-def print_prompt(prompt_type):
-    if prompt_type == "Query":
-        rtn_prompt = config_type["Begin"] + config_type["Query"]
-        rtn_prompt += "%s("
-        rtn_prompt += config_type["End"]
-        rtn_prompt += config_type["Begin"] + config_type["Quote"]
-        rtn_prompt += "%s"
-        rtn_prompt += config_type["End"]
-        rtn_prompt += config_type["Begin"] + config_type["Query"]
-        rtn_prompt += "):"
-        rtn_prompt += config_type["End"]
-    elif prompt_type == "Normal":
-        rtn_prompt = config_type["Begin"] + config_type["Query"]
-        rtn_prompt += "%s("
-        rtn_prompt += config_type["End"]
-        rtn_prompt += config_type["Begin"] + config_type["Quote"]
-        rtn_prompt += "%s"
-        rtn_prompt += config_type["End"]
-        rtn_prompt += config_type["Begin"] + config_type["Query"]
-        rtn_prompt += "):"
-        rtn_prompt += config_type["End"]
-    elif prompt_type == "Error":
-        rtn_prompt = config_type["Begin"] + config_type["Query"]
-        rtn_prompt += "["
-        rtn_prompt += config_type["End"]
-        rtn_prompt += config_type["Begin"] + config_type[prompt_type]
-        rtn_prompt += prompt_type
-        rtn_prompt += config_type["End"]
-        rtn_prompt += config_type["Begin"] + config_type["Query"]
-        rtn_prompt += "] "
-        rtn_prompt += config_type["End"]
-        rtn_prompt += config_type["Begin"] + config_type["Quote"]
-        rtn_prompt += "%s"
-        rtn_prompt += config_type["End"]
-    else:
-        rtn_prompt = config_type["Begin"] + config_type["Normal"]
-    return rtn_prompt
-
-
-# 选择不同项目，目前只有 front_end
-def operate(new_type):
-    for (item_key, item_val) in front_end.items():
-        if new_type in item_val.keys():
-            os.system("yarn init")
-            # print("init completed.")  # TODO
-            for lib in item_val[new_type]:
-                try:
-                    os.system("yarn add %s" % lib)
-                    # print("yarn add %s" % lib)  # TODO
-                except IOError:
-                    print(
-                        print_prompt("Error") %
-                        "Stopped at %s. Check and go on." % lib)
-                    exit(0)
-            continue
-
-        a = input(
-            print_prompt("Query") % ("Select an item", "|".join(
-                i.replace(" -D", "") for i in item_val)))
-        for lib in item_val[a]:
-            try:
-                # print("yarn add %s" % lib)  # TODO
-                os.system("yarn add %s" % lib)
-            except IOError:
-                print(
-                    print_prompt("Error") % "Stopped at %s. Check and go on." %
-                    lib)
-                exit(0)
-    print_prompt("Settle down. Hack fun!")
-
-
-# 初始化环境
-def env_init():
-    arg = {
-        # "author": "Palm Civet",
-    }
-    for (key, value) in arg.items():
-        try:
-            value = input(print_prompt("Query") % (key, value))
-        except IOError:
-            value = value
-    return arg
-
-
-# 项目类型、项目文件夹路径
-def arg_query():
-    arg = {
-        "type": "react",
-        # "name": "./test",
-        "name": "./test/" + str(random.randrange(1, 50)),  # TODO
-    }
-    for (key, value) in arg.items():
-        arg[key] = input(print_prompt("Query") % (key, value)) or value
-    return arg
-
-
-def main():
-    arg = arg_query()
-    try:
-        os.makedirs(os.path.join("./", arg["name"].replace("./", "")))
-        os.chdir(os.path.join("./", arg["name"].replace("./", "")))
-    except FileExistsError:
-        print(print_prompt("Error") % "Can't make a folder.")
-        exit(0)
-    operate(arg["type"])
-
-    for files in os.listdir():
-        if os.path.isdir(files):
-            print(files)
-
-
-if __name__ == "__main__":
-    config_type = {
+class gen_prompt(object):
+    __ctrl = {
         "Begin": "\033[1;",
         "End": "\033[0m",
-        "Error": "31;40m",
-        "Normal": "32;40m",
-        "Warn": "33;40m",
-        "Query": "37;40m",
         "Quote": "34;40m",
+        "Body": "37;40m",
     }
-    front_end = {
-        "library": {
+
+    __sym = {
+        "Success": "36;40m" + "√",  # cyan
+        "Query": "32;40m" + "?",  # green
+        "Error": "31;40m" + "×",  # red
+        "Warn": "33;40m" + "!",  # yellow
+    }
+
+    # type - Warn|Error|Query|Success
+    def __prompt_sym(self, sym_type):
+        sym = self.__ctrl["Begin"] + self.__ctrl["Body"] + "[" + self.__ctrl[
+            "End"]
+        sym += self.__ctrl["Begin"] + self.__sym[sym_type] + self.__ctrl["End"]
+        sym += self.__ctrl["Begin"] + self.__ctrl["Body"] + "]" + self.__ctrl[
+            "End"]
+        sym += " "
+        return sym
+
+    # [√] Settle down. hack fun!
+    def success(self):
+        body = self.__prompt_sym("Success")
+        body += self.__ctrl["Begin"] + self.__ctrl["Body"]
+        body += "%s"
+        body += self.__ctrl["End"]
+        return body
+
+    # [?] Select lib(less|sass):
+    def query(self):
+        body = self.__prompt_sym("Query")
+        body += self.__ctrl["Begin"] + self.__ctrl["Body"]
+        body += "%s("
+        body += self.__ctrl["End"]
+        body += self.__ctrl["Begin"] + self.__ctrl["Quote"]
+        body += "%s"
+        body += self.__ctrl["End"]
+        body += self.__ctrl["Begin"] + self.__ctrl["Body"]
+        body += "):"
+        body += self.__ctrl["End"]
+        return body
+
+    # [×] Network fail. Stopped at __
+    def error(self):
+        body = self.__prompt_sym("Error")
+        body += self.__ctrl["Begin"] + self.__ctrl["Body"]
+        body += "%s"
+        body += self.__ctrl["End"]
+        body += self.__ctrl["Begin"] + self.__ctrl["Quote"]
+        body += "%s"
+        body += self.__ctrl["End"]
+        return body
+
+    def warn(self):
+        body = self.__prompt_sym("Warn")
+        body += self.__ctrl["Begin"] + self.__ctrl["Body"]
+        body += "%s"
+        body += self.__ctrl["End"]
+        return body
+
+
+class init_scaffold(object):
+    def __init__(self):
+        pass
+
+    def env_query(self, hdl_notice):
+        env = {
+            "git": "git",
+            "npm": "npm",
+            "yarn": "yarn",
+            "author": "Palm Civet",
+        }
+        return env
+
+    def arg_query(self, hdl_notice):
+        arg = {
+            "type": "react",
+            # "name": "./test",
+            "name": "./test/" + str(random.randrange(1, 50)),  # TODO
+        }
+        for (key, value) in arg.items():
+            arg[key] = input(
+                (hdl_notice.query() + " ") % (key, value)) or value
+        return arg
+
+    def git_init(self):
+        # os.system(env["git"])
+        print("git init")  # TODO
+
+
+class op_directory(object):
+    def __init__(self):
+        pass
+
+    def list_dir(self, dir="./", op="l", hide=False):
+        if op == "l":
+            for files in os.listdir():
+                if os.path.isdir(files):
+                    print(files)
+        elif op == "t":
+            pass
+        else:
+            pass
+
+    def mk_cd(self, file_name):
+        try:
+            os.makedirs(os.path.join("./", file_name.replace("./", "")))
+            os.chdir(os.path.join("./", file_name.replace("./", "")))
+        except FileExistsError:
+            print("Can't make a folder.")
+            exit(0)
+
+
+class operate(object):
+    __front_end = {
+        "Library": {
             "react": [
                 "react",
                 "react-dom",
@@ -144,18 +143,20 @@ if __name__ == "__main__":
                 "webpack-dev-server -D",
                 "html-webpack-plugin -D",
             ],
-            "vue": [],
+            "vue": [
+                "vue",
+            ],
         },
-        "css": {
+        "CSS": {
             "less": ["less -D", "less-loader -D"],
             "sass": ["sass -D", "sass-loader -D"],
         },
-        "ui": {
+        "UI": {
             "antd":
             ["antd -D", "react-hot-loader -D", "babel-plugin-import -D"],
             "element": ["element-react -D", "element-theme-default -D"],
         },
-        "data": {
+        "Data": {
             "mobx": [
                 "babel-plugin-transform-class-properties -D",
                 "babel-plugin-transform-decorators-legacy -D",
@@ -164,4 +165,58 @@ if __name__ == "__main__":
             "redux": ["redux -D", "react-redux -D"],
         }
     }
+
+    def front_end(self, prompt, arg, env):
+        for (item_key, item_val) in self.__front_end.items():
+            scheme = arg["type"]
+            if scheme in item_val.keys():
+                # os.system("%s init" % env["yarn"])
+                print("yarn init.")  # TODO
+            else:
+                scheme = input((prompt.query() + " ") % (item_key, "|".join(
+                    i.replace(" -D", "") for i in item_val)))
+
+                while scheme not in item_val:
+                    if scheme in ["q", "e", "quit", "exit"]:
+                        exit(0)
+                    else:
+                        print(prompt.error() % ("Don't exist: ", scheme))
+                    scheme = input(
+                        prompt.warn() %
+                        ("Choose an item(\033[1;34;40m%s\033[0m): ") %
+                        "|".join(i.replace(" -D", "") for i in item_val))
+
+            for lib in item_val[scheme]:
+                try:
+                    # os.system("yarn add %s" % lib)
+                    print("yarn add %s" % lib)  # TODO
+                except IOError:
+                    print(prompt.error() % ("Stopped at: ", lib))
+                    exit(0)
+
+    def python(self, parameter_list):
+        pass
+
+    def rust(self, parameter_list):
+        pass
+
+
+def main():
+    notice = gen_prompt()
+
+    scaffold = init_scaffold()
+    env = scaffold.env_query(notice)  # config environment
+    arg = scaffold.arg_query(notice)  # query arguments
+
+    op = op_directory()
+    op.mk_cd(arg["name"])  # mkdir and cd
+    scaffold.git_init()  # git init
+
+    hdl = operate()
+    hdl.front_end(notice, arg, env)
+
+    print(notice.success() % "Settle down. Hack fun!")
+
+
+if __name__ == "__main__":
     main()
