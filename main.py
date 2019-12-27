@@ -77,6 +77,13 @@ class init_scaffold(object):
     def __init__(self):
         pass
 
+    file_dir = {
+        "pwd": "./",
+        "dir": os.getcwd(),
+        "license": os.getcwd() + "/static/license/",
+        "webpack": os.getcwd() + "/static/webpack/"
+    }
+
     def env_query(self, hdl_notice):
         env = {
             "git": "git",
@@ -84,13 +91,15 @@ class init_scaffold(object):
             "yarn": "yarn",
             "author": "Palm Civet",
         }
+        env.update(self.file_dir)
         return env
 
     def arg_query(self, hdl_notice):
         arg = {
             "type": "react",
-            # "name": "./test",
-            "name": "./test/" + str(random.randrange(1, 50)),  # TODO
+            "license": "MIT",
+            "name":
+            self.file_dir["pwd"] + str(random.randrange(1, 50)),  # TODO
         }
         for (key, value) in arg.items():
             arg[key] = input(
@@ -100,6 +109,18 @@ class init_scaffold(object):
     def git_init(self):
         # os.system(env["git"])
         print("git init")  # TODO
+        ignore_list = [
+            ".DS_Store", "node_modules/", "dist/", "test/", "yarn-error.log"
+        ]
+        with open(".gitignore", "w+") as ignore_file:
+            for i in ignore_list:
+                ignore_file.writelines(i + "\n")
+
+    def lic_add(self, type):
+        with open("LICENSE",
+                  "w+") as new_lic, open(self.file_dir["license"] + type,
+                                         "r") as tem_lic:
+            new_lic.writelines(tem_lic)
 
 
 class op_directory(object):
@@ -118,8 +139,9 @@ class op_directory(object):
 
     def mk_cd(self, file_name):
         try:
-            os.makedirs(os.path.join("./", file_name.replace("./", "")))
-            os.chdir(os.path.join("./", file_name.replace("./", "")))
+            # TODO
+            os.makedirs(os.path.join("./test", file_name.replace("./", "")))
+            os.chdir(os.path.join("./test", file_name.replace("./", "")))
         except FileExistsError:
             print("Can't make a folder.")
             exit(0)
@@ -166,16 +188,19 @@ class operate(object):
         }
     }
 
-    def front_end(self, prompt, arg, env):
+    def web(self, prompt, arg, env):
+        tech_list = []
         for (item_key, item_val) in self.__front_end.items():
             scheme = arg["type"]
             if scheme in item_val.keys():
                 # os.system("%s init" % env["yarn"])
                 print("yarn init.")  # TODO
+                tech_list.append(scheme)
             else:
                 scheme = input((prompt.query() + " ") % (item_key, "|".join(
                     i.replace(" -D", "") for i in item_val)))
 
+                tech_list.append(scheme)
                 while scheme not in item_val:
                     if scheme in ["q", "e", "quit", "exit"]:
                         exit(0)
@@ -194,6 +219,21 @@ class operate(object):
                     print(prompt.error() % ("Stopped at: ", lib))
                     exit(0)
 
+        with open("webpack.config.dev.js",
+                  "w+") as dev, open(env["webpack"] + "base.txt") as base:
+            dev.writelines(base)
+            dev.write("    module: {\n")
+            dev.write("        rules: [\n")
+            for i in tech_list:
+                if not os.path.exists(env["webpack"] + i):
+                    continue
+                with open(env["webpack"] + i, "r") as t:
+                    dev.writelines(t)
+            dev.write("\n")
+            dev.write("        ]\n")
+            dev.write("    }\n")
+            dev.write("};")
+
     def python(self, parameter_list):
         pass
 
@@ -211,9 +251,10 @@ def main():
     op = op_directory()
     op.mk_cd(arg["name"])  # mkdir and cd
     scaffold.git_init()  # git init
+    scaffold.lic_add(arg["license"])  # add LICENSE
 
     hdl = operate()
-    hdl.front_end(notice, arg, env)
+    hdl.web(notice, arg, env)
 
     print(notice.success() % "Settle down. Hack fun!")
 
