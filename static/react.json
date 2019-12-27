@@ -1,0 +1,19 @@
+{
+    "name": "",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.jsx",
+    "repository": "https://github.com/Palmcivet/",
+    "author": "Palm Civet",
+    "license": "MIT",
+    "scripts": {
+        "build": "webpack --config webpack.config.js",
+        "watch": "webpack --config webpack.config.js --watch",
+        "server": "webpack-dev-server"
+    },
+    "dependencies": {
+        "react": "^16.9.0",
+        "react-dom": "^16.9.0"
+    },
+    "devDependencies": {}
+}

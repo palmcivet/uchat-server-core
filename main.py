@@ -49,12 +49,12 @@ def print_prompt(prompt_type):
 def operate(new_type):
     for (item_key, item_val) in front_end.items():
         if new_type in item_val.keys():
-            # os.system("yarn init")
-            print("init completed.")  # TODO
+            os.system("yarn init")
+            # print("init completed.")  # TODO
             for lib in item_val[new_type]:
                 try:
-                    # os.system("yarn add %s" % list(item_val))
-                    print("yarn add %s" % lib)  # TODO
+                    os.system("yarn add %s" % lib)
+                    # print("yarn add %s" % lib)  # TODO
                 except IOError:
                     print(
                         print_prompt("Error") %
@@ -67,8 +67,8 @@ def operate(new_type):
                 i.replace(" -D", "") for i in item_val)))
         for lib in item_val[a]:
             try:
-                print("yarn add %s" % lib)  # TODO
-                # os.system("yarn add %s" % list(item_val))
+                # print("yarn add %s" % lib)  # TODO
+                os.system("yarn add %s" % lib)
             except IOError:
                 print(
                     print_prompt("Error") % "Stopped at %s. Check and go on." %
@@ -95,11 +95,10 @@ def arg_query():
     arg = {
         "type": "react",
         # "name": "./test",
-        "name": "./test/" + str(random.randrange(1, 100)),  # TODO
+        "name": "./test/" + str(random.randrange(1, 50)),  # TODO
     }
     for (key, value) in arg.items():
         arg[key] = input(print_prompt("Query") % (key, value)) or value
-    print(arg)  # TODO
     return arg
 
 
