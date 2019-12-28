@@ -4,7 +4,6 @@
 # repo: https://www.github.com/Palmcivet.git
 
 import os
-import random  # TODO
 
 
 class gen_prompt(object):
@@ -98,8 +97,7 @@ class init_scaffold(object):
         arg = {
             "type": "react",
             "license": "MIT",
-            "name":
-            self.file_dir["pwd"] + str(random.randrange(1, 50)),  # TODO
+            "name": self.file_dir["pwd"],
         }
         for (key, value) in arg.items():
             arg[key] = input(
@@ -107,8 +105,7 @@ class init_scaffold(object):
         return arg
 
     def git_init(self):
-        # os.system(env["git"])
-        print("git init")  # TODO
+        os.system("git init")
         ignore_list = [
             ".DS_Store", "node_modules/", "dist/", "test/", "yarn-error.log"
         ]
@@ -129,7 +126,7 @@ class op_directory(object):
 
     def list_dir(self, dir="./", op="l", hide=False):
         if op == "l":
-            for files in os.listdir():
+            for files in os.listdir(dir):
                 if os.path.isdir(files):
                     print(files)
         elif op == "t":
@@ -139,7 +136,6 @@ class op_directory(object):
 
     def mk_cd(self, file_name):
         try:
-            # TODO
             os.makedirs(os.path.join("./test", file_name.replace("./", "")))
             os.chdir(os.path.join("./test", file_name.replace("./", "")))
         except FileExistsError:
@@ -164,6 +160,7 @@ class operate(object):
                 "webpack-cli -D",
                 "webpack-dev-server -D",
                 "html-webpack-plugin -D",
+                "react-hot-loader -D",
             ],
             "vue": [
                 "vue",
@@ -193,9 +190,9 @@ class operate(object):
         for (item_key, item_val) in self.__front_end.items():
             scheme = arg["type"]
             if scheme in item_val.keys():
-                # os.system("%s init" % env["yarn"])
-                print("yarn init.")  # TODO
+                os.system("%s init" % env["yarn"])
                 tech_list.append(scheme)
+
             else:
                 scheme = input((prompt.query() + " ") % (item_key, "|".join(
                     i.replace(" -D", "") for i in item_val)))
@@ -213,8 +210,7 @@ class operate(object):
 
             for lib in item_val[scheme]:
                 try:
-                    # os.system("yarn add %s" % lib)
-                    print("yarn add %s" % lib)  # TODO
+                    os.system("yarn add %s" % lib)
                 except IOError:
                     print(prompt.error() % ("Stopped at: ", lib))
                     exit(0)
@@ -256,6 +252,7 @@ def main():
     hdl = operate()
     hdl.web(notice, arg, env)
 
+    op.list_dir("./", "l")
     print(notice.success() % "Settle down. Hack fun!")
 
 
