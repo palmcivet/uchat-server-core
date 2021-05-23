@@ -1,4 +1,23 @@
 .DS_Store
-.pyc
-test
-tempCodeRunnerFile.py
+
+# Local env files
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
+
+
+# Added by cargo
+
+/target
