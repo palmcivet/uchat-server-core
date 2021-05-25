@@ -1,4 +1,5 @@
 .DS_Store
+main
 
 # Local env files
 .env.local

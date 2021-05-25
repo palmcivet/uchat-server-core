@@ -2,7 +2,11 @@ package controller
 
 import (
 	"net/http"
+
+	"main/scheduler"
 )
 
-func Wechat(w http.ResponseWriter, r *http.Request) {
+func Wechat(sch scheduler.TScheduler) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+	}
 }

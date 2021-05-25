@@ -1,14 +1,21 @@
 package scheduler
 
-import "time"
+import (
+	"time"
+)
 
-type TSchedulerTask struct {
-	time time.Time
-	name string
-	text string
+type TScheduler interface {
+	Start()
+	Produce(task *TSchedulerTask)
 }
 
-type tScheduler struct {
+type TSchedulerTask struct {
+	Time time.Time
+	Name string
+	Text string
+}
+
+type sScheduler struct {
 	queue        chan TSchedulerTask
 	timeout      int
 	isSleep      bool
@@ -20,21 +27,23 @@ func NewScheduler(
 	timeout int,
 	immed func(task TSchedulerTask),
 	delay func(task []TSchedulerTask),
-) *tScheduler {
-	scheduler := new(tScheduler)
-	scheduler.timeout = timeout
-	scheduler.immedConsume = immed
-	scheduler.delayConsume = delay
-	return scheduler
+) TScheduler {
+	return &sScheduler{
+		queue:        make(chan TSchedulerTask, 50),
+		timeout:      timeout,
+		isSleep:      false,
+		immedConsume: immed,
+		delayConsume: delay,
+	}
 }
 
-func (sch *tScheduler) consume() {
+func (sch *sScheduler) consume() {
 	queueLen := len(sch.queue)
 	if queueLen == 1 {
 		task := <-sch.queue
 		sch.immedConsume(task)
 	} else if queueLen == 0 {
-		sch.isSleep = true
+		// sch.isSleep = true
 	} else {
 		var task []TSchedulerTask
 		for len(sch.queue) > 0 {
@@ -44,15 +53,15 @@ func (sch *tScheduler) consume() {
 	}
 }
 
-func (sch *tScheduler) Start() {
+func (sch *sScheduler) Start() {
 	sch.isSleep = false
 	timeTickerChan := time.NewTicker(time.Second * time.Duration(sch.timeout))
 	for !sch.isSleep {
-		sch.consume()
+		go sch.consume()
 		<-timeTickerChan.C
 	}
 }
 
-func (sch tScheduler) Produce(task *TSchedulerTask) {
+func (sch sScheduler) Produce(task *TSchedulerTask) {
 	sch.queue <- *task
 }

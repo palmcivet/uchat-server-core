@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"main/scheduler"
 )
 
 type WebHookDataAtUsers struct {
@@ -37,12 +39,21 @@ type WebHookData struct {
 	MsgType                   string               `json:"msgType"`
 }
 
-func Dingtalk(w http.ResponseWriter, r *http.Request) {
-	rawByte := make([]byte, r.ContentLength)
-	_, err := r.Body.Read(rawByte)
-	if err == nil {
-		log.Fatal("FailedToReadRequest: ", err)
+func Dingtalk(sch scheduler.TScheduler) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		rawByte := make([]byte, r.ContentLength)
+		_, err := r.Body.Read(rawByte)
+		if err == nil {
+			log.Fatal("FailedToReadRequest: ", err)
+		}
+
+		data := WebHookData{}
+		json.Unmarshal(rawByte, &data)
+
+		sch.Produce(&scheduler.TSchedulerTask{
+			Time: data.CreateAt,
+			Name: data.SenderNick,
+			Text: data.Text.Content,
+		})
 	}
-	data := WebHookData{}
-	json.Unmarshal(rawByte, &data)
 }
