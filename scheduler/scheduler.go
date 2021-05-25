@@ -18,7 +18,6 @@ type TSchedulerTask struct {
 type sScheduler struct {
 	queue        chan TSchedulerTask
 	timeout      int
-	isSleep      bool
 	immedConsume func(task TSchedulerTask)
 	delayConsume func(task []TSchedulerTask)
 }
@@ -31,7 +30,6 @@ func NewScheduler(
 	return &sScheduler{
 		queue:        make(chan TSchedulerTask, 50),
 		timeout:      timeout,
-		isSleep:      false,
 		immedConsume: immed,
 		delayConsume: delay,
 	}
@@ -42,9 +40,7 @@ func (sch *sScheduler) consume() {
 	if queueLen == 1 {
 		task := <-sch.queue
 		sch.immedConsume(task)
-	} else if queueLen == 0 {
-		// sch.isSleep = true
-	} else {
+	} else if queueLen > 0 {
 		var task []TSchedulerTask
 		for len(sch.queue) > 0 {
 			task = append(task, <-sch.queue)
@@ -54,10 +50,9 @@ func (sch *sScheduler) consume() {
 }
 
 func (sch *sScheduler) Start() {
-	sch.isSleep = false
 	timeTickerChan := time.NewTicker(time.Second * time.Duration(sch.timeout))
-	for !sch.isSleep {
-		go sch.consume()
+	for {
+		sch.consume()
 		<-timeTickerChan.C
 	}
 }

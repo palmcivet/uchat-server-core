@@ -10,13 +10,15 @@ import (
 )
 
 func immed(data scheduler.TSchedulerTask) {
-	fmt.Printf(data.Time.String(), data.Name, data.Text)
+	fmt.Println(data.Time.String(), data.Name, data.Text)
 }
 
 func delay(data []scheduler.TSchedulerTask) {
+	fmt.Println("====")
 	for _, v := range data {
-		fmt.Printf(v.Time.String(), v.Name, v.Text)
+		fmt.Println(v.Time.String(), v.Name, v.Text)
 	}
+	fmt.Println("----")
 }
 
 func main() {
