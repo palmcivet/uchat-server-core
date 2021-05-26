@@ -1,5 +1,4 @@
 .DS_Store
-main
 
 # Local env files
 .env.local
@@ -17,8 +16,5 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw*
-
-
-# Added by cargo
 
 /target

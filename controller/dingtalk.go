@@ -51,6 +51,7 @@ func Dingtalk(sch scheduler.TScheduler) func(w http.ResponseWriter, r *http.Requ
 		json.Unmarshal(rawByte, &data)
 
 		sch.Produce(&scheduler.TSchedulerTask{
+			Type: Edingtalk,
 			Time: data.CreateAt,
 			Name: data.SenderNick,
 			Text: data.Text.Content,

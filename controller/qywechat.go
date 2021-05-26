@@ -6,7 +6,7 @@ import (
 	"main/scheduler"
 )
 
-func Wechat(sch scheduler.TScheduler) func(w http.ResponseWriter, r *http.Request) {
+func Qywechat(sch scheduler.TScheduler) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 	}
 }

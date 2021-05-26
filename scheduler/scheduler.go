@@ -10,6 +10,7 @@ type TScheduler interface {
 }
 
 type TSchedulerTask struct {
+	Type int
 	Time time.Time
 	Name string
 	Text string
@@ -52,7 +53,7 @@ func (sch *sScheduler) consume() {
 func (sch *sScheduler) Start() {
 	timeTickerChan := time.NewTicker(time.Second * time.Duration(sch.timeout))
 	for {
-		sch.consume()
+		go sch.consume()
 		<-timeTickerChan.C
 	}
 }
