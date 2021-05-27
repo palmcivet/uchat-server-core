@@ -3,12 +3,12 @@ package dispatcher
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 
-	"main/controller"
 	"main/scheduler"
 )
 
@@ -18,13 +18,16 @@ type sConfig struct {
 }
 
 type TDispatcher interface {
-	Dispatch(task scheduler.TSchedulerTask)
+	ImmedDispatch(task scheduler.TSchedulerTask)
+	DelayDispatch(tasks []scheduler.TSchedulerTask)
 }
 
-type sDispatcher sConfig
+type sDispatcher struct {
+	token map[string]string
+}
 
-func NewDispatcher() TDispatcher {
-	jsonData, err := os.Open("config.json")
+func NewDispatcher(path string) TDispatcher {
+	jsonData, err := os.Open(path)
 	if err != nil {
 		log.Fatal("ReadConfigFile", err)
 	}
@@ -39,32 +42,39 @@ func NewDispatcher() TDispatcher {
 	json.Unmarshal([]byte(byteData), &config)
 
 	return &sDispatcher{
-		Dingtalk: config.Dingtalk,
-		Qywechat: config.Qywechat,
+		token: map[string]string{
+			"Dingtalk": "https://oapi.dingtalk.com/robot/send?access_token=" + config.Dingtalk,
+			"Qywechat": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=" + config.Qywechat,
+		},
 	}
 }
 
-func (dis *sDispatcher) Dispatch(task scheduler.TSchedulerTask) {
-	for i := range controller.EType {
-		if i == task.Type {
-			continue
-		}
+func (dis *sDispatcher) ImmedDispatch(task scheduler.TSchedulerTask) {
+	bytesData, _ := json.Marshal(task)
+	fmt.Println(bytesData)
 
-		bytesData, _ := json.Marshal(task)
-
-		res, err := http.Post(
-			"https://oapi.dingtalk.com/robot/send?access_token="+dis.Dingtalk,
-			"application/json",
-			bytes.NewBuffer([]byte(bytesData)),
-		)
-		if err == nil {
-			log.Fatal("PostFail")
-		}
-		defer res.Body.Close()
-
-		_, err = ioutil.ReadAll(res.Body)
-		if err == nil {
-			log.Fatal("ReadAll")
-		}
+	res, err := http.Post(
+		"",
+		"application/json",
+		bytes.NewBuffer([]byte(bytesData)),
+	)
+	if err == nil {
+		log.Fatal("NetworkFail")
 	}
+	defer res.Body.Close()
+
+	_, err = ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal("PostFailer", err)
+	}
+
+	fmt.Println(task.Time.String(), task.Name, task.Text)
+}
+
+func (dis *sDispatcher) DelayDispatch(tasks []scheduler.TSchedulerTask) {
+	fmt.Println("====")
+	for _, v := range tasks {
+		fmt.Println(v.Time.String(), v.Name, v.Text)
+	}
+	fmt.Println("----")
 }
