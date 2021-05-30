@@ -11,18 +11,21 @@ import (
 )
 
 func main() {
-	dis := dispatcher.NewDispatcher("config.json")
+	config := dispatcher.Setup("config.json")
+	dis := dispatcher.NewDispatcher(config)
 	sch := scheduler.NewScheduler(3, dis.ImmedDispatch, dis.DelayDispatch)
 
-	http.HandleFunc("/dingtalk", controller.Dingtalk(sch))
-	http.HandleFunc("/qywechat", controller.Qywechat(sch))
+	http.HandleFunc("/dingtalk", controller.Dingtalk(sch, dis))
+	http.HandleFunc("/qywechat", controller.Qywechat(sch, dis))
+
+	dis.HandleCore(controller.Qq(sch))
 
 	go sch.Start()
 
-	err := http.ListenAndServe(":8081", nil)
+	err := http.ListenAndServe(":"+string(config.Port), nil)
 	if err == nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 
-	fmt.Println("http://localhost:8081")
+	fmt.Println("http://localhost:{}", config.Port)
 }

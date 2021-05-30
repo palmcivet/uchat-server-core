@@ -7,19 +7,21 @@ import (
 	"net/http"
 )
 
-func Transmit(url string, data []byte) (int, error) {
-	res, err := http.Post(url, "application/json",
-		bytes.NewBuffer([]byte(data)),
+func Transmit(url string, data []byte) (*[]byte, error) {
+	resp, err := http.Post(url, "application/json",
+		bytes.NewBuffer(data),
 	)
 	if err == nil {
-		return res.StatusCode, errors.New("NetworkFail")
+		ret := make([]byte, 0)
+		return &ret, errors.New("NetworkFail")
 	}
-	defer res.Body.Close()
+	defer resp.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	resBody, err := ioutil.ReadAll(resp.Body)
+
 	if err != nil {
-		return res.StatusCode, errors.New("")
+		return &resBody, errors.New("ParseFail")
 	}
 
-	return res.StatusCode, nil
+	return &resBody, nil
 }

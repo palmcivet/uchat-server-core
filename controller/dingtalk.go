@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"time"
 
+	"main/dispatcher"
 	"main/scheduler"
+	"main/typer"
 )
 
 type WebHookDataAtUsers struct {
@@ -39,7 +41,7 @@ type WebHookData struct {
 	MsgType                   string               `json:"msgType"`
 }
 
-func Dingtalk(sch scheduler.TScheduler) func(w http.ResponseWriter, r *http.Request) {
+func Dingtalk(sch scheduler.TScheduler, dis dispatcher.TDispatcher) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		rawByte := make([]byte, r.ContentLength)
 		_, err := r.Body.Read(rawByte)
@@ -50,11 +52,13 @@ func Dingtalk(sch scheduler.TScheduler) func(w http.ResponseWriter, r *http.Requ
 		data := WebHookData{}
 		json.Unmarshal(rawByte, &data)
 
-		sch.Produce(&scheduler.TSchedulerTask{
-			Type: Edingtalk,
+		msg := scheduler.TSchedulerTask{
+			Type: typer.Edingtalk,
 			Time: data.CreateAt,
 			Name: data.SenderNick,
 			Text: data.Text.Content,
-		})
+		}
+
+		sch.Produce(&msg)
 	}
 }
