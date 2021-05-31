@@ -4,12 +4,12 @@ import (
 	"time"
 )
 
-type TScheduler interface {
+type Scheduler interface {
 	Start()
-	Produce(task *TSchedulerTask)
+	Produce(task *SSchedulerTask)
 }
 
-type TSchedulerTask struct {
+type SSchedulerTask struct {
 	Type int
 	Time time.Time
 	Name string
@@ -17,20 +17,23 @@ type TSchedulerTask struct {
 }
 
 type sScheduler struct {
-	queue        chan TSchedulerTask
+	queue        chan SSchedulerTask
 	timeout      int
-	immedConsume func(task TSchedulerTask)
-	delayConsume func(task []TSchedulerTask)
+	logger       func(task *SSchedulerTask)
+	immedConsume func(task SSchedulerTask)
+	delayConsume func(task []SSchedulerTask)
 }
 
 func NewScheduler(
 	timeout int,
-	immed func(task TSchedulerTask),
-	delay func(task []TSchedulerTask),
-) TScheduler {
+	immed func(task SSchedulerTask),
+	delay func(task []SSchedulerTask),
+	logger func(task *SSchedulerTask),
+) Scheduler {
 	return &sScheduler{
-		queue:        make(chan TSchedulerTask, 50),
+		queue:        make(chan SSchedulerTask, 50),
 		timeout:      timeout,
+		logger:       logger,
 		immedConsume: immed,
 		delayConsume: delay,
 	}
@@ -42,7 +45,7 @@ func (sch *sScheduler) consume() {
 		task := <-sch.queue
 		sch.immedConsume(task)
 	} else if queueLen > 0 {
-		var task []TSchedulerTask
+		var task []SSchedulerTask
 		for len(sch.queue) > 0 {
 			task = append(task, <-sch.queue)
 		}
@@ -58,6 +61,7 @@ func (sch *sScheduler) Start() {
 	}
 }
 
-func (sch sScheduler) Produce(task *TSchedulerTask) {
+func (sch sScheduler) Produce(task *SSchedulerTask) {
+	sch.logger(task)
 	sch.queue <- *task
 }

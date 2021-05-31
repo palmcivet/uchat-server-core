@@ -12,20 +12,20 @@ import (
 
 func main() {
 	config := dispatcher.Setup("config.json")
+
 	dis := dispatcher.NewDispatcher(config)
-	sch := scheduler.NewScheduler(3, dis.ImmedDispatch, dis.DelayDispatch)
+	sch := scheduler.NewScheduler(3, dis.ImmedDispatch, dis.DelayDispatch, dis.Forward)
 
-	http.HandleFunc("/dingtalk", controller.Dingtalk(sch, dis))
-	http.HandleFunc("/qywechat", controller.Qywechat(sch, dis))
-
-	dis.HandleCore(controller.Qq(sch))
-
-	go sch.Start()
+	http.HandleFunc("/dingtalk", controller.Dingtalk(sch))
+	http.HandleFunc("/qywechat", controller.Qywechat(sch))
 
 	err := http.ListenAndServe(":"+string(config.Port), nil)
 	if err == nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
+
+	dis.Start(&sch)
+	go sch.Start()
 
 	fmt.Println("http://localhost:{}", config.Port)
 }

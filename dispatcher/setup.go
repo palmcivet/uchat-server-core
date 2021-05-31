@@ -13,8 +13,8 @@ type sToken struct {
 }
 
 type sMirai struct {
-	Groupid int16  `json:"groupid"`
-	Account int16  `json:"account"`
+	Groupid uint16 `json:"groupid"`
+	Account uint16 `json:"account"`
 	Authkey string `json:"authkey"`
 	Http    string `json:"http"`
 	Ws      string `json:"ws"`

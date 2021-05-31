@@ -14,9 +14,8 @@ import (
 type sUrl struct {
 	dingtalk string
 	qywechat string
+	selfhost string
 	feishu   string
-	cli      string
-	web      string
 	qq       string
 }
 
@@ -26,11 +25,11 @@ type sTransfer struct {
 	sMirai
 }
 
-type TDispatcher interface {
-	HandleCore(fun func(p []byte))
-	QQDispatch(task scheduler.TSchedulerTask)
-	ImmedDispatch(task scheduler.TSchedulerTask)
-	DelayDispatch(tasks []scheduler.TSchedulerTask)
+type Dispatcher interface {
+	Start(sch *scheduler.Scheduler)
+	Forward(task *scheduler.SSchedulerTask)
+	ImmedDispatch(task scheduler.SSchedulerTask)
+	DelayDispatch(tasks []scheduler.SSchedulerTask)
 }
 
 type sDispatcher struct {
@@ -40,7 +39,7 @@ type sDispatcher struct {
 	google   bool
 }
 
-func NewDispatcher(config sConfig) TDispatcher {
+func NewDispatcher(config sConfig) Dispatcher {
 	return &sDispatcher{
 		urls: sUrl{
 			dingtalk: fmt.Sprintf("https://oapi.dingtalk.com/robot/send?access_token=%s", config.Token.Dingtalk),
@@ -61,7 +60,10 @@ func NewDispatcher(config sConfig) TDispatcher {
 	}
 }
 
-func (dis *sDispatcher) HandleCore(receiver func(p []byte)) {
+/*
+ * 建立 WS 连接
+ */
+func (dis *sDispatcher) Start(sch *scheduler.Scheduler) {
 	var err error
 
 	dis.transfer.conn, _, err = websocket.DefaultDialer.Dial(dis.urls.qq, nil)
@@ -79,19 +81,37 @@ func (dis *sDispatcher) HandleCore(receiver func(p []byte)) {
 			if err != nil {
 				log.Println("read:", err)
 			}
-			receiver(msg)
+			dis.receive(msg)
 		}
 	}()
 }
 
-func (dis sDispatcher) QQDispatch(task scheduler.TSchedulerTask) {
-	dis.transfer.conn.WriteJSON(&typer.SOutgoing{
+/*
+ * QQ 消息网关
+ */
+func (dis sDispatcher) receive(p []byte) {
+	data := typer.SOutgoing{}
+	err := json.Unmarshal(p, &data)
+	if err != nil {
+		fmt.Println("ParseFail", err)
+	}
+
+	if data.Data.Sender.Group.Id == dis.transfer.Groupid {
+		return
+	}
+}
+
+/*
+ * QQ 即时转发
+ */
+func (dis sDispatcher) Forward(task *scheduler.SSchedulerTask) {
+	dis.transfer.conn.WriteJSON(&typer.SIngoing{
 		SyncId:  0,
 		Command: "sendGroupMessage",
-		Content: typer.SOutGroup{
+		Content: typer.SInGroup{
 			SessionKey: dis.transfer.session,
 			Target:     dis.transfer.Groupid,
-			MessageChain: []typer.SOutMessage{
+			MessageChain: []typer.SMessage{
 				{
 					Type: "Plain",
 					Text: task.Text,
@@ -102,9 +122,9 @@ func (dis sDispatcher) QQDispatch(task scheduler.TSchedulerTask) {
 }
 
 /*
- * Transmit 到各种平台
+ * 快转发
  */
-func (dis *sDispatcher) ImmedDispatch(task scheduler.TSchedulerTask) {
+func (dis *sDispatcher) ImmedDispatch(task scheduler.SSchedulerTask) {
 	bytesData, _ := json.Marshal(task)
 
 	fmt.Println(task.Time.String(), task.Name, task.Text)
@@ -133,24 +153,19 @@ func (dis *sDispatcher) ImmedDispatch(task scheduler.TSchedulerTask) {
 		}
 	}
 
-	// CLI
-	if task.Type != typer.Ecli {
-		_, err := Transmit(dis.urls.cli, bytesData)
-		if err != nil {
-			log.Println("PostFail", err)
-		}
-	}
-
-	// Web
-	if task.Type != typer.Eweb {
-		_, err := Transmit(dis.urls.web, bytesData)
+	// CLI/Web
+	if task.Type != typer.ESelfhost {
+		_, err := Transmit(dis.urls.selfhost, bytesData)
 		if err != nil {
 			log.Println("PostFail", err)
 		}
 	}
 }
 
-func (dis *sDispatcher) DelayDispatch(tasks []scheduler.TSchedulerTask) {
+/*
+ * 慢转发
+ */
+func (dis *sDispatcher) DelayDispatch(tasks []scheduler.SSchedulerTask) {
 	fmt.Println("====")
 	for _, v := range tasks {
 		fmt.Println(v.Time.String(), v.Name, v.Text)
