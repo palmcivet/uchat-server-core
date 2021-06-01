@@ -81,23 +81,37 @@ func (dis *sDispatcher) Start(sch *scheduler.Scheduler) {
 			if err != nil {
 				log.Println("read:", err)
 			}
-			dis.receive(msg)
+
+			dis.receive(msg, (*sch).Produce)
 		}
 	}()
 }
 
 /*
  * QQ 消息网关
+ * 处理指令的核心构件
  */
-func (dis sDispatcher) receive(p []byte) {
+func (dis sDispatcher) receive(p []byte, f func(*scheduler.SSchedulerTask)) {
 	data := typer.SOutgoing{}
 	err := json.Unmarshal(p, &data)
 	if err != nil {
 		fmt.Println("ParseFail", err)
 	}
 
-	if data.Data.Sender.Group.Id == dis.transfer.Groupid {
+	if data.Data.Type != "GroupMessage" {
 		return
+	}
+
+	// 命令处理
+
+	// 指定群聊转发，使用传入的 handler
+	if data.Data.Sender.Group.Id == dis.transfer.Groupid {
+		f(&scheduler.SSchedulerTask{
+			Type: typer.Enon,
+			Time: data.Data.MessageChain[0].(typer.SMessageSource).Time,
+			Name: data.Data.Sender.MemberName,
+			Text: data.Data.MessageChain[1].(typer.SMessagePlain).Text,
+		})
 	}
 }
 
@@ -111,8 +125,8 @@ func (dis sDispatcher) Forward(task *scheduler.SSchedulerTask) {
 		Content: typer.SInGroup{
 			SessionKey: dis.transfer.session,
 			Target:     dis.transfer.Groupid,
-			MessageChain: []typer.SMessage{
-				{
+			MessageChain: []interface{}{
+				typer.SMessagePlain{
 					Type: "Plain",
 					Text: task.Text,
 				},

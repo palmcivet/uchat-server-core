@@ -2,10 +2,32 @@ package typer
 
 import "time"
 
-type SMessage struct {
+type SMessageSource struct {
+	Type string    `json:"type"`
+	Id   string    `json:"id"`
+	Time time.Time `json:"time"`
+}
+
+type SMessageQuote struct {
+	Type     string        `json:"type"`
+	Id       string        `json:"id"`
+	Groupid  string        `json:"groupId"`
+	SenderId string        `json:"senderId"`
+	TargetId string        `json:"targetId"`
+	Origin   []interface{} `json:"origin"`
+}
+
+type SMessageImage struct {
+	Type    string `json:"type"`
+	ImageId string `json:"imageId"`
+	Url     string `json:"url"`
+	Path    string `json:"path"`
+	Base64  string `json:"base64"`
+}
+
+type SMessagePlain struct {
 	Type string `json:"type"`
-	Text string `json:"text,omitempty"`
-	Url  string `json:"url,omitempty"`
+	Text string `json:"text"`
 }
 
 type SResponseData struct {
@@ -38,7 +60,7 @@ type SOutDataSender struct {
 type SOutData struct {
 	Type         string         `json:"type"`
 	Sender       SOutDataSender `json:"sender"`
-	MessageChain []SMessage     `json:"messageChain"`
+	MessageChain []interface{}  `json:"messageChain"`
 }
 
 type SOutgoing struct {
@@ -47,9 +69,9 @@ type SOutgoing struct {
 }
 
 type SInGroup struct {
-	SessionKey   string     `json:"sessionKey"`
-	Target       uint16     `json:"target"`
-	MessageChain []SMessage `json:"messageChain"`
+	SessionKey   string        `json:"sessionKey"`
+	Target       uint16        `json:"target"`
+	MessageChain []interface{} `json:"messageChain"`
 }
 
 type SIngoing struct {

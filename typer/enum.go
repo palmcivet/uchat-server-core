@@ -5,4 +5,5 @@ const (
 	Eqywechat
 	ESelfhost
 	Efeishu
+	Enon
 )
