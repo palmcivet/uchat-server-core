@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"time"
 
 	"main/scheduler"
 	"main/typer"
@@ -29,7 +28,7 @@ type WebHookData struct {
 	IsAdmin                   bool                 `json:"isAdmin"`
 	SenderStaffId             string               `json:"senderStaffId"`
 	SessionWebhookExpiredTime int16                `json:"sessionWebhookExpiredTime"`
-	CreateAt                  time.Time            `json:"createAt"`
+	CreateAt                  int64                `json:"createAt"`
 	SenderCorpId              string               `json:"senderCorpId"`
 	ConversationType          string               `json:"conversationType"`
 	SenderId                  string               `json:"senderId"`

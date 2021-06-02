@@ -11,7 +11,7 @@ type Scheduler interface {
 
 type SSchedulerTask struct {
 	Type int
-	Time time.Time
+	Time int64
 	Name string
 	Text string
 }
@@ -55,10 +55,12 @@ func (sch *sScheduler) consume() {
 
 func (sch *sScheduler) Start() {
 	timeTickerChan := time.NewTicker(time.Second * time.Duration(sch.timeout))
-	for {
-		go sch.consume()
-		<-timeTickerChan.C
-	}
+	go func() {
+		for {
+			go sch.consume()
+			<-timeTickerChan.C
+		}
+	}()
 }
 
 func (sch sScheduler) Produce(task *SSchedulerTask) {

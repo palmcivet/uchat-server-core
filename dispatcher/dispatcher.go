@@ -44,7 +44,7 @@ func NewDispatcher(config sConfig) Dispatcher {
 		urls: sUrl{
 			dingtalk: fmt.Sprintf("https://oapi.dingtalk.com/robot/send?access_token=%s", config.Token.Dingtalk),
 			qywechat: fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=%s", config.Token.Qywechat),
-			qq:       fmt.Sprintf("%s/message?verifyKey=%s&qq=%d", config.Mirai.Ws, config.Mirai.Authkey, config.Mirai.Account),
+			qq:       fmt.Sprintf("%s/message?verifyKey=%s&qq=%s", config.Mirai.Ws, config.Mirai.Authkey, config.Mirai.Account),
 		},
 		transfer: sTransfer{
 			sMirai: sMirai{
@@ -70,12 +70,24 @@ func (dis *sDispatcher) Start(sch *scheduler.Scheduler) {
 	if err != nil {
 		log.Fatal("WebSocketFail", err)
 	}
-	defer dis.transfer.conn.Close()
 
-	done := make(chan struct{})
+	_, msg, err := dis.transfer.conn.ReadMessage()
+	if err != nil {
+		log.Println("RecevieFail", err)
+	}
+
+	data := typer.SResponse{}
+	err = json.Unmarshal(msg, &data)
+	if err != nil {
+		log.Println("ParseFail", err)
+	}
+	dis.transfer.session = data.Data.Session
+
+	fmt.Println("连接到 Mirai")
 
 	go func() {
-		defer close(done)
+		defer dis.transfer.conn.Close()
+
 		for {
 			_, msg, err := dis.transfer.conn.ReadMessage()
 			if err != nil {
@@ -141,7 +153,7 @@ func (dis sDispatcher) Forward(task *scheduler.SSchedulerTask) {
 func (dis *sDispatcher) ImmedDispatch(task scheduler.SSchedulerTask) {
 	bytesData, _ := json.Marshal(task)
 
-	fmt.Println(task.Time.String(), task.Name, task.Text)
+	fmt.Println(task.Time, task.Name, task.Text)
 
 	// Dingtalk
 	if task.Type != typer.Edingtalk {
@@ -182,7 +194,7 @@ func (dis *sDispatcher) ImmedDispatch(task scheduler.SSchedulerTask) {
 func (dis *sDispatcher) DelayDispatch(tasks []scheduler.SSchedulerTask) {
 	fmt.Println("====")
 	for _, v := range tasks {
-		fmt.Println(v.Time.String(), v.Name, v.Text)
+		fmt.Println(v.Time, v.Name, v.Text)
 	}
 	fmt.Println("----")
 }

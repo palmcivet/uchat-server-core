@@ -1,11 +1,13 @@
 package typer
 
-import "time"
+import (
+	"encoding/json"
+)
 
 type SMessageSource struct {
-	Type string    `json:"type"`
-	Id   string    `json:"id"`
-	Time time.Time `json:"time"`
+	Type string `json:"type"`
+	Id   string `json:"id"`
+	Time int64  `json:"time"`
 }
 
 type SMessageQuote struct {
@@ -31,29 +33,29 @@ type SMessagePlain struct {
 }
 
 type SResponseData struct {
-	Code    uint8  `json:"code"`
-	Session string `json:"session"`
+	Code    json.Number `json:"code"`
+	Session string      `json:"session"`
 }
 
 type SResponse struct {
-	SyncId uint8         `json:"syncId"`
+	SyncId string        `json:"syncId"`
 	Data   SResponseData `json:"data"`
 }
 
 type SOutDataGroup struct {
-	Id         uint16 `json:"id"`
-	Name       string `json:"name"`
-	Nermission string `json:"permission"`
+	Id         json.Number `json:"id"`
+	Name       string      `json:"name"`
+	Nermission string      `json:"permission"`
 }
 
 type SOutDataSender struct {
-	Id                 uint16
+	Id                 json.Number   `json:"id"`
 	MemberName         string        `json:"memberName"`
 	SpecialTitle       string        `json:"specialTitle"`
 	Permission         string        `json:"permission"`
-	JoinTimestamp      time.Time     `json:"joinTimestamp"`
-	LastSpeakTimestamp time.Time     `json:"lastSpeakTimestamp"`
-	MuteTimeRemaining  time.Time     `json:"muteTimeRemaining"`
+	JoinTimestamp      int           `json:"joinTimestamp"`
+	LastSpeakTimestamp int           `json:"lastSpeakTimestamp"`
+	MuteTimeRemaining  int           `json:"muteTimeRemaining"`
 	Group              SOutDataGroup `json:"group"`
 }
 
@@ -64,18 +66,18 @@ type SOutData struct {
 }
 
 type SOutgoing struct {
-	SyncId uint8    `json:"syncId"`
+	SyncId string   `json:"syncId"`
 	Data   SOutData `json:"data"`
 }
 
 type SInGroup struct {
 	SessionKey   string        `json:"sessionKey"`
-	Target       uint16        `json:"target"`
+	Target       json.Number   `json:"target"`
 	MessageChain []interface{} `json:"messageChain"`
 }
 
 type SIngoing struct {
-	SyncId     int8     `json:"SyncId"`
+	SyncId     uint8    `json:"SyncId"`
 	Command    string   `json:"command"`
 	SubCommand string   `json:"subCommand"`
 	Content    SInGroup `json:"content"`
