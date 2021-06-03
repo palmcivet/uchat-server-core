@@ -40,12 +40,20 @@ type sDispatcher struct {
 }
 
 func NewDispatcher(config sConfig) Dispatcher {
+	urls := sUrl{
+		qq: fmt.Sprintf("%s/message?verifyKey=%s&qq=%s", config.Mirai.Ws, config.Mirai.Authkey, config.Mirai.Account),
+	}
+
+	if config.Token.Dingtalk != "" {
+		urls.dingtalk = fmt.Sprintf("https://oapi.dingtalk.com/robot/send?access_token=%s", config.Token.Dingtalk)
+	}
+
+	if config.Token.Qywechat != "" {
+		urls.qywechat = fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=%s", config.Token.Qywechat)
+	}
+
 	return &sDispatcher{
-		urls: sUrl{
-			dingtalk: fmt.Sprintf("https://oapi.dingtalk.com/robot/send?access_token=%s", config.Token.Dingtalk),
-			qywechat: fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=%s", config.Token.Qywechat),
-			qq:       fmt.Sprintf("%s/message?verifyKey=%s&qq=%s", config.Mirai.Ws, config.Mirai.Authkey, config.Mirai.Account),
-		},
+		urls: urls,
 		transfer: sTransfer{
 			sMirai: sMirai{
 				Groupid: config.Mirai.Groupid,
@@ -156,7 +164,7 @@ func (dis *sDispatcher) ImmedDispatch(task scheduler.SSchedulerTask) {
 	fmt.Println(task.Time, task.Name, task.Text)
 
 	// Dingtalk
-	if task.Type != typer.Edingtalk {
+	if dis.urls.dingtalk != "" && task.Type != typer.Edingtalk {
 		_, err := Transmit(dis.urls.dingtalk, bytesData)
 		if err != nil {
 			log.Println("PostFail", err)
@@ -164,7 +172,7 @@ func (dis *sDispatcher) ImmedDispatch(task scheduler.SSchedulerTask) {
 	}
 
 	// QYWechat
-	if task.Type != typer.Eqywechat {
+	if dis.urls.qywechat != "" && task.Type != typer.Eqywechat {
 		_, err := Transmit(dis.urls.qywechat, bytesData)
 		if err != nil {
 			log.Println("PostFail", err)

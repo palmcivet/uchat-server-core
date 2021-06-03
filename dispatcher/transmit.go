@@ -11,7 +11,7 @@ func Transmit(url string, data []byte) ([]byte, error) {
 	resp, err := http.Post(url, "application/json",
 		bytes.NewBuffer(data),
 	)
-	if err == nil {
+	if err != nil {
 		ret := make([]byte, 0)
 		return ret, errors.New("NetworkFail")
 	}
