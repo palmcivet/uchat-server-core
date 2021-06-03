@@ -120,9 +120,9 @@ func (dis sDispatcher) receive(p []byte, f func(*scheduler.SSchedulerTask)) {
 	if data.Data.Sender.Group.Id == dis.transfer.Groupid {
 		f(&scheduler.SSchedulerTask{
 			Type: typer.Enon,
-			Time: data.Data.MessageChain[0].(typer.SMessageSource).Time,
+			Time: int64(data.Data.MessageChain[0]["time"].(float64)) * 1000,
 			Name: data.Data.Sender.MemberName,
-			Text: data.Data.MessageChain[1].(typer.SMessagePlain).Text,
+			Text: data.Data.MessageChain[1]["text"].(string),
 		})
 	}
 }

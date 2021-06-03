@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 )
 
+/* MessageChain 类型 */
+
 type SMessageSource struct {
 	Type string `json:"type"`
 	Id   string `json:"id"`
@@ -32,6 +34,8 @@ type SMessagePlain struct {
 	Text string `json:"text"`
 }
 
+/* WS 连接建立时的响应体 */
+
 type SResponseData struct {
 	Code    json.Number `json:"code"`
 	Session string      `json:"session"`
@@ -41,6 +45,8 @@ type SResponse struct {
 	SyncId string        `json:"syncId"`
 	Data   SResponseData `json:"data"`
 }
+
+/* 从 mirai 推送的消息格式 */
 
 type SOutDataGroup struct {
 	Id         json.Number `json:"id"`
@@ -60,15 +66,17 @@ type SOutDataSender struct {
 }
 
 type SOutData struct {
-	Type         string         `json:"type"`
-	Sender       SOutDataSender `json:"sender"`
-	MessageChain []interface{}  `json:"messageChain"`
+	Type         string                   `json:"type"`
+	Sender       SOutDataSender           `json:"sender"`
+	MessageChain []map[string]interface{} `json:"messageChain"`
 }
 
 type SOutgoing struct {
 	SyncId string   `json:"syncId"`
 	Data   SOutData `json:"data"`
 }
+
+/* 推送到 mirai 的消息格式 */
 
 type SInGroup struct {
 	SessionKey   string        `json:"sessionKey"`
