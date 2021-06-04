@@ -2,18 +2,22 @@ package dispatcher
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
 )
 
-func Transmit(url string, data []byte) ([]byte, error) {
+func Transmit(url string, v interface{}) ([]byte, error) {
+	data, err := json.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
 	resp, err := http.Post(url, "application/json",
 		bytes.NewBuffer(data),
 	)
 	if err != nil {
-		ret := make([]byte, 0)
-		return ret, errors.New("NetworkFail")
+		return nil, errors.New("NetworkFail")
 	}
 	defer resp.Body.Close()
 

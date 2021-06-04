@@ -6,9 +6,18 @@ import (
 	"log"
 )
 
-type sToken struct {
-	Dingtalk string `json:"dingtalk"`
-	Qywechat string `json:"qywechat"`
+type sDingtalk struct {
+	Enable  bool   `json:"enable"`
+	Webhook string `json:"webhook"`
+}
+
+type sWecom struct {
+	Enable  bool   `json:"enable"`
+	Webhook string `json:"webhook"`
+	Corpid  string `json:"corpid"`
+	Agentid int    `json:"agentid"`
+	Sceret  string `json:"sceret"`
+	Touser  string `json:"touser"`
 }
 
 type sMirai struct {
@@ -20,11 +29,12 @@ type sMirai struct {
 }
 
 type sConfig struct {
-	Token   sToken      `json:"token"`
-	Mirai   sMirai      `json:"mirai"`
-	Weekend bool        `json:"weekend"`
-	Google  bool        `json:"google"`
-	Port    json.Number `json:"port"`
+	Dingtalk sDingtalk   `json:"dingtalk"`
+	Wecom    sWecom      `json:"wecom"`
+	Mirai    sMirai      `json:"mirai"`
+	Weekend  bool        `json:"weekend"`
+	Google   bool        `json:"google"`
+	Port     json.Number `json:"port"`
 }
 
 func Setup(path string) sConfig {

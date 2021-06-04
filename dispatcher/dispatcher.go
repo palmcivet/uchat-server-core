@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gorilla/websocket"
 
@@ -44,12 +45,8 @@ func NewDispatcher(config sConfig) Dispatcher {
 		qq: fmt.Sprintf("%s/message?verifyKey=%s&qq=%s", config.Mirai.Ws, config.Mirai.Authkey, config.Mirai.Account),
 	}
 
-	if config.Token.Dingtalk != "" {
-		urls.dingtalk = fmt.Sprintf("https://oapi.dingtalk.com/robot/send?access_token=%s", config.Token.Dingtalk)
-	}
-
-	if config.Token.Qywechat != "" {
-		urls.qywechat = fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=%s", config.Token.Qywechat)
+	if config.Dingtalk.Enable {
+		urls.dingtalk = fmt.Sprintf("https://oapi.dingtalk.com/robot/send?access_token=%s", config.Dingtalk.Webhook)
 	}
 
 	return &sDispatcher{
@@ -91,8 +88,6 @@ func (dis *sDispatcher) Start(sch *scheduler.Scheduler) {
 	}
 	dis.transfer.session = data.Data.Session
 
-	fmt.Println("连接到 Mirai")
-
 	go func() {
 		defer dis.transfer.conn.Close()
 
@@ -115,7 +110,7 @@ func (dis sDispatcher) receive(p []byte, f func(*scheduler.SSchedulerTask)) {
 	data := typer.SOutgoing{}
 	err := json.Unmarshal(p, &data)
 	if err != nil {
-		fmt.Println("ParseFail", err)
+		log.Println("ParseFail", err)
 	}
 
 	if data.Data.Type != "GroupMessage" {
@@ -128,7 +123,7 @@ func (dis sDispatcher) receive(p []byte, f func(*scheduler.SSchedulerTask)) {
 	if data.Data.Sender.Group.Id == dis.transfer.Groupid {
 		f(&scheduler.SSchedulerTask{
 			Type: typer.Enon,
-			Time: int64(data.Data.MessageChain[0]["time"].(float64)) * 1000,
+			Time: int64(data.Data.MessageChain[0]["time"].(float64)),
 			Name: data.Data.Sender.MemberName,
 			Text: data.Data.MessageChain[1]["text"].(string),
 		})
@@ -165,7 +160,14 @@ func (dis *sDispatcher) ImmedDispatch(task scheduler.SSchedulerTask) {
 
 	// Dingtalk
 	if dis.urls.dingtalk != "" && task.Type != typer.Edingtalk {
-		_, err := Transmit(dis.urls.dingtalk, bytesData)
+		data := typer.SDingIngoingText{
+			Text: typer.SDingInText{
+				Content: fmt.Sprintf(`QQ-%s-%s
+%s`, task.Name, time.Unix(task.Time, 0).Format("01-02 15:04:05"), task.Text),
+			},
+			Msgtype: "text",
+		}
+		_, err := Transmit(dis.urls.dingtalk, data)
 		if err != nil {
 			log.Println("PostFail", err)
 		}
