@@ -85,8 +85,8 @@ type SInGroup struct {
 }
 
 type SIngoing struct {
-	SyncId     uint8    `json:"SyncId"`
+	SyncId     int8     `json:"syncId"`
 	Command    string   `json:"command"`
-	SubCommand string   `json:"subCommand"`
+	SubCommand string   `json:"subCommand,omitempty"`
 	Content    SInGroup `json:"content"`
 }

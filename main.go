@@ -26,15 +26,14 @@ func main() {
 	sch := scheduler.NewScheduler(3, dis.ImmedDispatch, dis.DelayDispatch, dis.Forward)
 
 	http.HandleFunc("/dingtalk", controller.Dingtalk(sch))
-	http.HandleFunc("/qywechat", controller.Qywechat(sch))
+	http.HandleFunc("/feishu", controller.Feishu(sch))
 
 	sch.Start()
 	dis.Start(&sch)
 
-	fmt.Println("http://localhost:" + config.Port)
+	fmt.Println("🚀 listened at http://localhost:" + config.Port)
 
-	err := http.ListenAndServe(":"+string(config.Port), nil)
-	if err != nil {
+	if err := http.ListenAndServe(":"+string(config.Port), nil); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }

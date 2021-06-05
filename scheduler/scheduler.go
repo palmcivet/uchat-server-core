@@ -10,10 +10,11 @@ type Scheduler interface {
 }
 
 type SSchedulerTask struct {
-	Type int
-	Time int64
-	Name string
-	Text string
+	Type  int
+	Time  int64
+	Name  string
+	Text  string
+	Image bool
 }
 
 type sScheduler struct {

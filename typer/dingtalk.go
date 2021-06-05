@@ -28,3 +28,35 @@ type SDingIngoingMarkdown struct {
 	Markdown SDingInMarkdown `json:"markdown"`
 	Msgtype  string          `json:"msgtype"`
 }
+
+/* Dingtalk 推送的消息格式 */
+
+type SDingOutAt struct {
+	DingtalkId string `json:"dingtalkId"`
+	StaffId    string `json:"staffId"`
+}
+
+type SDingOutText struct {
+	Content string `json:"content"`
+}
+
+type SDingOutGoing struct {
+	ConversationId            string       `json:"conversationId"`
+	AtUsers                   []SDingOutAt `json:"atUsers"`
+	ChatbotCorpId             string       `json:"chatbotCorpId"`
+	ChatbotUserId             string       `json:"chatbotUserId"`
+	MsgId                     string       `json:"msgId"`
+	SenderNick                string       `json:"senderNick"`
+	IsAdmin                   bool         `json:"isAdmin"`
+	SenderStaffId             string       `json:"senderStaffId"`
+	SessionWebhookExpiredTime int16        `json:"sessionWebhookExpiredTime"`
+	CreateAt                  int64        `json:"createAt"`
+	SenderCorpId              string       `json:"senderCorpId"`
+	ConversationType          string       `json:"conversationType"`
+	SenderId                  string       `json:"senderId"`
+	ConversationTitle         string       `json:"conversationTitle"`
+	IsInAtList                bool         `json:"isInAtList"`
+	SessionWebhook            string       `json:"sessionWebhook"`
+	Text                      SDingOutText `json:"text"`
+	MsgType                   string       `json:"msgType"`
+}
