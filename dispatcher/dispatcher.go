@@ -85,7 +85,6 @@ func (dis *sDispatcher) Start(sch *scheduler.Scheduler) {
 		log.Println("ParseFail", err)
 	}
 	dis.transfer.session = data.Data.Session
-	fmt.Printf(data.Data.Session)
 
 	go func() {
 		defer dis.transfer.conn.Close()
@@ -113,7 +112,7 @@ func (dis sDispatcher) receive(p []byte, f func(*scheduler.SSchedulerTask)) {
 		log.Println("ParseFail", err)
 	}
 
-	if data.Data.Type != "GroupMessage" {
+	if data.Data.Type != "GroupMessage" || data.Data.Sender.Id == dis.transfer.Account {
 		return
 	}
 

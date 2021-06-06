@@ -31,7 +31,7 @@ func main() {
 	sch.Start()
 	dis.Start(&sch)
 
-	fmt.Println("🚀 listened at http://localhost:" + config.Port)
+	fmt.Println("🚀 listened at http://0.0.0.0:" + config.Port)
 
 	if err := http.ListenAndServe(":"+string(config.Port), nil); err != nil {
 		log.Fatal("ListenAndServe: ", err)

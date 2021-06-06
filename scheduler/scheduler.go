@@ -2,6 +2,8 @@ package scheduler
 
 import (
 	"time"
+
+	"main/typer"
 )
 
 type Scheduler interface {
@@ -65,6 +67,8 @@ func (sch *sScheduler) Start() {
 }
 
 func (sch sScheduler) Produce(task *SSchedulerTask) {
-	sch.logger(task)
+	if task.Type != typer.Enon {
+		sch.logger(task)
+	}
 	sch.queue <- *task
 }
